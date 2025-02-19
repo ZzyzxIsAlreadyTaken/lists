@@ -1,12 +1,21 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useLayoutEffect } from "react";
 import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
-import { Link, useFocusEffect } from "expo-router";
+import {
+  Link,
+  useFocusEffect,
+  useLocalSearchParams,
+  router,
+  Stack,
+} from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CategoryManager, { Category } from "./components/CategoryManager";
 import ListItem from "./components/ListItem";
 import ActionBar from "./components/ActionBar";
 import CreateListModal from "./components/CreateListModal";
 import Footer from "./components/Footer";
+import { Ionicons } from "@expo/vector-icons";
+import CategoriesButton from "./components/CategoriesButton";
+import { useCategories } from "./context/CategoryContext";
 
 type List = {
   id: string;
@@ -14,6 +23,8 @@ type List = {
   items: ListItem[];
   archived?: boolean;
   categoryId?: string;
+  isCategorySeparator?: boolean;
+  isCollapsed?: boolean;
 };
 
 type ListItem = {
@@ -22,16 +33,42 @@ type ListItem = {
   completed: boolean;
 };
 
+type ListOrSeparator =
+  | List
+  | {
+      id: string;
+      title: string;
+      items: ListItem[];
+      isCategorySeparator?: boolean;
+      archived?: boolean;
+      categoryId?: string;
+      isCollapsed?: boolean;
+    };
+
+type SortBy = {
+  field: "name" | "date";
+  direction: "asc" | "desc";
+};
+
+type CollapsedCategories = {
+  [categoryId: string]: boolean; // true means collapsed
+};
+
 const STORAGE_KEY = "my-lists";
 
 export default function Index() {
+  const { categories, loadCategories } = useCategories();
   const [lists, setLists] = useState<List[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [newListTitle, setNewListTitle] = useState("");
   const [newListCategory, setNewListCategory] = useState<string | undefined>();
-  const [sortBy, setSortBy] = useState<"name" | "category">("name");
+  const [sortBy, setSortBy] = useState<SortBy>({
+    field: "name",
+    direction: "asc",
+  });
+  const [groupBy, setGroupBy] = useState<"none" | "category">("none");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [collapsedCategories, setCollapsedCategories] =
+    useState<CollapsedCategories>({});
 
   const loadLists = async () => {
     try {
@@ -44,14 +81,14 @@ export default function Index() {
     }
   };
 
-  const loadCategories = async () => {
+  const loadCollapsedState = async () => {
     try {
-      const storedCategories = await AsyncStorage.getItem("categories");
-      if (storedCategories) {
-        setCategories(JSON.parse(storedCategories));
+      const storedState = await AsyncStorage.getItem("collapsedCategories");
+      if (storedState) {
+        setCollapsedCategories(JSON.parse(storedState));
       }
     } catch (error) {
-      console.error("Failed to load categories:", error);
+      console.error("Failed to load collapsed state:", error);
     }
   };
 
@@ -59,6 +96,7 @@ export default function Index() {
     useCallback(() => {
       loadLists();
       loadCategories();
+      loadCollapsedState();
     }, [])
   );
 
@@ -67,18 +105,6 @@ export default function Index() {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedLists));
     } catch (error) {
       console.error("Failed to save lists:", error);
-    }
-  };
-
-  const saveCategories = async (updatedCategories: Category[]) => {
-    try {
-      await AsyncStorage.setItem(
-        "categories",
-        JSON.stringify(updatedCategories)
-      );
-      setCategories(updatedCategories);
-    } catch (error) {
-      console.error("Failed to save categories:", error);
     }
   };
 
@@ -99,26 +125,68 @@ export default function Index() {
     setNewListCategory(undefined);
   };
 
-  const sortedAndGroupedLists = useCallback(() => {
-    const sorted = [...lists].sort((a, b) => {
-      if (sortBy === "category") {
-        const categoryA =
-          categories.find((c) => c.id === a.categoryId)?.name || "";
-        const categoryB =
-          categories.find((c) => c.id === b.categoryId)?.name || "";
-        return categoryA.localeCompare(categoryB);
+  const sortedAndGroupedLists = useCallback((): ListOrSeparator[] => {
+    const sortLists = (a: List, b: List) => {
+      const multiplier = sortBy.direction === "asc" ? 1 : -1;
+
+      if (sortBy.field === "date") {
+        return multiplier * (parseInt(b.id) - parseInt(a.id));
       }
-      return a.title.localeCompare(b.title);
-    });
+      return multiplier * a.title.localeCompare(b.title);
+    };
+
+    // First separate non-archived and archived
+    let nonArchived = [...lists].filter((list) => !list.archived);
+    let archived = [...lists].filter((list) => list.archived);
+
+    // If grouping by category
+    if (groupBy === "category") {
+      // Get unique categories
+      const uniqueCategories = Array.from(
+        new Set(nonArchived.map((list) => list.categoryId))
+      );
+
+      // Sort lists within each category
+      const groupedNonArchived = uniqueCategories.flatMap((categoryId) => {
+        const categoryLists = nonArchived
+          .filter((list) => list.categoryId === categoryId)
+          .sort(sortLists);
+
+        if (categoryLists.length === 0) return [];
+
+        const category = categories.find((c) => c.id === categoryId);
+        const isCollapsed = collapsedCategories[categoryId ?? "none"] ?? true; // Default to collapsed
+
+        return [
+          {
+            id: `category-${categoryId || "none"}`,
+            title: category?.name || "No Category",
+            items: [],
+            isCategorySeparator: true,
+            categoryId: categoryId,
+            isCollapsed,
+          },
+          ...(isCollapsed ? [] : categoryLists),
+        ];
+      });
+
+      nonArchived = groupedNonArchived;
+    } else {
+      // If not grouping, sort all non-archived lists together
+      nonArchived.sort(sortLists);
+    }
+
+    // Sort archived lists
+    archived.sort(sortLists);
 
     return [
-      ...sorted.filter((list) => !list.archived),
-      ...(sorted.some((l) => l.archived)
+      ...nonArchived,
+      ...(archived.length > 0
         ? [{ id: "separator", title: "", items: [], archived: true }]
         : []),
-      ...sorted.filter((list) => list.archived),
+      ...archived,
     ];
-  }, [lists, categories, sortBy]);
+  }, [lists, categories, sortBy, groupBy, collapsedCategories]);
 
   const toggleArchive = async (listId: string) => {
     const updatedLists = lists.map((list) =>
@@ -128,30 +196,60 @@ export default function Index() {
     await saveLists(updatedLists);
   };
 
-  const handleSaveCategory = async (category: Category) => {
-    const updatedCategories = [...categories, category];
-    await saveCategories(updatedCategories);
+  const toggleCategoryCollapse = async (categoryId: string) => {
+    const newState = {
+      ...collapsedCategories,
+      [categoryId]: !collapsedCategories[categoryId],
+    };
+    setCollapsedCategories(newState);
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.header}>My Lists</Text>
-
         <View style={styles.actionsRow}>
           <ActionBar
-            onManageCategories={() => setShowCategoryManager(true)}
             sortBy={sortBy}
-            onSortChange={setSortBy}
+            onSortChange={(value: SortBy) => setSortBy(value)}
+            groupBy={groupBy}
+            onGroupChange={(value: "none" | "category") => setGroupBy(value)}
           />
         </View>
 
-        <FlatList
+        <FlatList<ListOrSeparator>
           data={sortedAndGroupedLists()}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => {
+            if (item.isCategorySeparator) {
+              return (
+                <Pressable
+                  style={styles.categorySeparator}
+                  onPress={() =>
+                    toggleCategoryCollapse(item.categoryId ?? "none")
+                  }
+                >
+                  <View style={styles.categoryHeader}>
+                    <Text style={styles.categoryLabel}>{item.title}</Text>
+                    <Ionicons
+                      name={item.isCollapsed ? "chevron-down" : "chevron-up"}
+                      size={20}
+                      color="#666"
+                    />
+                  </View>
+                  <Text style={styles.categoryCount}>
+                    {
+                      lists.filter(
+                        (l) => l.categoryId === item.categoryId && !l.archived
+                      ).length
+                    }{" "}
+                    lists
+                  </Text>
+                </Pressable>
+              );
+            }
+
             if (item.id === "separator" && lists.some((l) => l.archived)) {
               return (
                 <View style={styles.archiveSeparator}>
@@ -190,13 +288,6 @@ export default function Index() {
         categories={categories}
         onSubmit={createNewList}
       />
-
-      <CategoryManager
-        visible={showCategoryManager}
-        onClose={() => setShowCategoryManager(false)}
-        categories={categories}
-        onSaveCategory={handleSaveCategory}
-      />
     </View>
   );
 }
@@ -204,7 +295,7 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#f8f8f8",
   },
   content: {
     flex: 1,
@@ -233,5 +324,27 @@ const styles = StyleSheet.create({
     color: "#666",
     fontSize: 14,
     fontWeight: "500",
+  },
+  categorySeparator: {
+    paddingVertical: 10,
+    marginBottom: 5,
+    backgroundColor: "#f8f8f8",
+    borderRadius: 5,
+    padding: 15,
+  },
+  categoryHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  categoryLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#666",
+  },
+  categoryCount: {
+    fontSize: 12,
+    color: "#999",
+    marginTop: 4,
   },
 });

@@ -39,82 +39,95 @@ export default function CreateListModal({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.modalContainer}
-      >
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Create New List</Text>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
+      <Pressable style={styles.modalContainer} onPress={onClose}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.keyboardView}
+        >
+          <Pressable
+            style={styles.modalContent}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Text style={styles.modalTitle}>Create New List</Text>
 
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              value={title}
-              onChangeText={onTitleChange}
-              placeholder="Enter list title"
-              autoFocus
-            />
-          </View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                value={title}
+                onChangeText={onTitleChange}
+                placeholder="Enter list title"
+                autoFocus
+              />
+            </View>
 
-          <View style={styles.categorySelect}>
-            <Text style={styles.categorySelectLabel}>Category:</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <Pressable
-                style={[
-                  styles.categoryOption,
-                  !selectedCategory && styles.selectedCategory,
-                ]}
-                onPress={() => onCategoryChange(undefined)}
-              >
-                <Text style={styles.categoryOptionText}>None</Text>
-              </Pressable>
-              {categories.map((category) => (
+            <View style={styles.categorySelect}>
+              <Text style={styles.categorySelectLabel}>Category:</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <Pressable
-                  key={category.id}
                   style={[
                     styles.categoryOption,
-                    selectedCategory === category.id && styles.selectedCategory,
-                    { borderColor: category.color },
+                    !selectedCategory && styles.selectedCategory,
                   ]}
-                  onPress={() => onCategoryChange(category.id)}
+                  onPress={() => onCategoryChange(undefined)}
                 >
-                  <View
-                    style={[
-                      styles.categoryDot,
-                      { backgroundColor: category.color },
-                    ]}
-                  />
-                  <Text style={styles.categoryOptionText}>{category.name}</Text>
+                  <Text style={styles.categoryOptionText}>None</Text>
                 </Pressable>
-              ))}
-            </ScrollView>
-          </View>
-
-          <View style={styles.buttonContainer}>
-            <Pressable style={styles.cancelButton} onPress={onClose}>
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </Pressable>
-            <Pressable
-              style={[
-                styles.createButton,
-                !title && styles.createButtonDisabled,
-              ]}
-              onPress={handleSubmit}
-              disabled={!title}
-            >
-              <Text
-                style={[
-                  styles.createButtonText,
-                  !title && styles.createButtonTextDisabled,
-                ]}
-              >
-                Create
-              </Text>
-            </Pressable>
-          </View>
-        </View>
-      </KeyboardAvoidingView>
+                {categories.map((category) => (
+                  <Pressable
+                    key={category.id}
+                    style={[
+                      styles.categoryOption,
+                      selectedCategory === category.id &&
+                        styles.selectedCategory,
+                      { borderColor: category.color },
+                    ]}
+                    onPress={() => onCategoryChange(category.id)}
+                  >
+                    <View
+                      style={[
+                        styles.categoryDot,
+                        { backgroundColor: category.color },
+                      ]}
+                    />
+                    <Text style={styles.categoryOptionText}>
+                      {category.name}
+                    </Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+              <View style={styles.buttonContainer}>
+                <Pressable style={styles.cancelButton} onPress={onClose}>
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </Pressable>
+                <Pressable
+                  style={[
+                    styles.createButton,
+                    !title && styles.createButtonDisabled,
+                  ]}
+                  onPress={handleSubmit}
+                  disabled={!title}
+                >
+                  <Text
+                    style={[
+                      styles.createButtonText,
+                      !title && styles.createButtonTextDisabled,
+                    ]}
+                  >
+                    Create
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </Pressable>
+        </KeyboardAvoidingView>
+      </Pressable>
     </Modal>
   );
 }
@@ -126,6 +139,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     padding: 20,
+  },
+  keyboardView: {
+    width: "100%",
   },
   modalContent: {
     backgroundColor: "white",
@@ -186,6 +202,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 10,
+    marginTop: 20,
   },
   cancelButton: {
     flex: 1,
@@ -202,7 +219,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
     borderRadius: 5,
-    backgroundColor: "#007AFF",
+    backgroundColor: "#6B46C1",
     alignItems: "center",
   },
   createButtonDisabled: {

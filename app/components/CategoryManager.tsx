@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -45,6 +45,10 @@ export default function CategoryManager({
   const [newCategoryName, setNewCategoryName] = useState("");
   const [selectedColor, setSelectedColor] = useState(DEFAULT_COLORS[0]);
 
+  useEffect(() => {
+    console.log("CategoryManager visible:", visible); // Debug log
+  }, [visible]);
+
   const handleSave = () => {
     if (newCategoryName.trim() === "") return;
 
@@ -60,63 +64,68 @@ export default function CategoryManager({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.modalContainer}
-      >
-        <View style={styles.modalContent}>
-          <ScrollView>
-            <Text style={styles.modalTitle}>Manage Categories</Text>
+      <Pressable style={styles.modalContainer} onPress={onClose}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.keyboardAvoidingView}
+        >
+          <Pressable
+            style={styles.modalContent}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <ScrollView>
+              <Text style={styles.modalTitle}>Manage Categories</Text>
 
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                value={newCategoryName}
-                onChangeText={setNewCategoryName}
-                placeholder="New category name"
-              />
-            </View>
-
-            <Text style={styles.colorLabel}>Select Color:</Text>
-            <View style={styles.colorGrid}>
-              {DEFAULT_COLORS.map((color) => (
-                <Pressable
-                  key={color}
-                  style={[
-                    styles.colorOption,
-                    { backgroundColor: color },
-                    selectedColor === color && styles.selectedColor,
-                  ]}
-                  onPress={() => setSelectedColor(color)}
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.input}
+                  value={newCategoryName}
+                  onChangeText={setNewCategoryName}
+                  placeholder="New category name"
                 />
-              ))}
-            </View>
+              </View>
 
-            <Pressable style={styles.saveButton} onPress={handleSave}>
-              <Text style={styles.saveButtonText}>Add Category</Text>
-            </Pressable>
-
-            <Text style={styles.existingLabel}>Existing Categories:</Text>
-            <View style={styles.categoriesList}>
-              {categories.map((item) => (
-                <View key={item.id} style={styles.categoryItem}>
-                  <View
+              <Text style={styles.colorLabel}>Select Color:</Text>
+              <View style={styles.colorGrid}>
+                {DEFAULT_COLORS.map((color) => (
+                  <Pressable
+                    key={color}
                     style={[
-                      styles.categoryDot,
-                      { backgroundColor: item.color },
+                      styles.colorOption,
+                      { backgroundColor: color },
+                      selectedColor === color && styles.selectedColor,
                     ]}
+                    onPress={() => setSelectedColor(color)}
                   />
-                  <Text style={styles.categoryName}>{item.name}</Text>
-                </View>
-              ))}
-            </View>
-          </ScrollView>
+                ))}
+              </View>
 
-          <Pressable style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>Close</Text>
+              <Pressable style={styles.saveButton} onPress={handleSave}>
+                <Text style={styles.saveButtonText}>Add Category</Text>
+              </Pressable>
+
+              <Text style={styles.existingLabel}>Existing Categories:</Text>
+              <View style={styles.categoriesList}>
+                {categories.map((item) => (
+                  <View key={item.id} style={styles.categoryItem}>
+                    <View
+                      style={[
+                        styles.categoryDot,
+                        { backgroundColor: item.color },
+                      ]}
+                    />
+                    <Text style={styles.categoryName}>{item.name}</Text>
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
+
+            <Pressable style={styles.closeButton} onPress={onClose}>
+              <Text style={styles.closeButtonText}>Close</Text>
+            </Pressable>
           </Pressable>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </Pressable>
     </Modal>
   );
 }
@@ -128,6 +137,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     padding: 20,
+  },
+  keyboardAvoidingView: {
+    width: "100%",
   },
   modalContent: {
     backgroundColor: "white",

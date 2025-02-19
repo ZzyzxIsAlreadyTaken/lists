@@ -76,14 +76,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   listItem: {
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#666",
+    borderColor: "#ffffff",
     borderRadius: 5,
     padding: 15,
   },
   archivedListItem: {
-    backgroundColor: "#f8f8f8",
+    backgroundColor: "#f0f0f0",
+    borderColor: "#f0f0f0",
   },
   listItemContent: {
     flexDirection: "row",

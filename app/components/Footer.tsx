@@ -1,6 +1,7 @@
 import React from "react";
 import { View, StyleSheet, Pressable, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useCategories } from "../context/CategoryContext";
 
 type FooterProps = {
   onCreatePress: () => void;
@@ -8,14 +9,23 @@ type FooterProps = {
 
 export default function Footer({ onCreatePress }: FooterProps) {
   const insets = useSafeAreaInsets();
+  const { setShowCategoryManager } = useCategories();
 
   return (
     <View
       style={[styles.container, { paddingBottom: Math.max(insets.bottom, 16) }]}
     >
-      <Pressable style={styles.createButton} onPress={onCreatePress}>
-        <Text style={styles.createButtonText}>Create New List</Text>
-      </Pressable>
+      <View style={styles.buttonRow}>
+        <Pressable
+          style={styles.categoriesButton}
+          onPress={() => setShowCategoryManager(true)}
+        >
+          <Text style={styles.categoriesButtonText}>Categories</Text>
+        </Pressable>
+        <Pressable style={styles.createButton} onPress={onCreatePress}>
+          <Text style={styles.createButtonText}>Create New List</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -26,13 +36,30 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "#fff",
+    backgroundColor: "#f8f8f8",
     borderTopWidth: 1,
-    borderTopColor: "#eee",
+    borderTopColor: "#f8f8f8",
     padding: 16,
   },
+  buttonRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  categoriesButton: {
+    flex: 1,
+    backgroundColor: "#eee",
+    padding: 16,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  categoriesButtonText: {
+    color: "#6B46C1",
+    fontWeight: "600",
+    fontSize: 16,
+  },
   createButton: {
-    backgroundColor: "#007AFF",
+    flex: 2,
+    backgroundColor: "#6B46C1",
     padding: 16,
     borderRadius: 10,
     alignItems: "center",

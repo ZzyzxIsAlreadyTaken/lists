@@ -1,29 +1,92 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+
+type SortBy = {
+  field: "name" | "date";
+  direction: "asc" | "desc";
+};
 
 type ActionBarProps = {
-  onManageCategories: () => void;
-  sortBy: "name" | "category";
-  onSortChange: (sort: "name" | "category") => void;
+  sortBy: SortBy;
+  onSortChange: (value: SortBy) => void;
+  groupBy: "none" | "category";
+  onGroupChange: (value: "none" | "category") => void;
 };
 
 export default function ActionBar({
-  onManageCategories,
   sortBy,
   onSortChange,
+  groupBy,
+  onGroupChange,
 }: ActionBarProps) {
+  const handleSortPress = (field: "name" | "date") => {
+    if (sortBy.field === field) {
+      // Toggle direction if same field
+      onSortChange({
+        field,
+        direction: sortBy.direction === "asc" ? "desc" : "asc",
+      });
+    } else {
+      // New field, start with ascending
+      onSortChange({ field, direction: "asc" });
+    }
+  };
+
   return (
-    <View style={styles.actionsContainer}>
-      <View style={styles.actionRow}>
-        <Pressable style={styles.categoryButton} onPress={onManageCategories}>
-          <Text style={styles.categoryButtonText}>Manage Categories</Text>
+    <View style={styles.actionContainer}>
+      <View style={styles.buttonRow}>
+        <Pressable
+          style={[
+            styles.sortButton,
+            sortBy.field === "name" && styles.activeButton,
+          ]}
+          onPress={() => handleSortPress("name")}
+        >
+          <Text
+            style={[
+              styles.buttonText,
+              sortBy.field === "name" && styles.activeButtonText,
+            ]}
+          >
+            Name{" "}
+            {sortBy.field === "name" &&
+              (sortBy.direction === "asc" ? "↑" : "↓")}
+          </Text>
         </Pressable>
         <Pressable
-          style={styles.sortButton}
-          onPress={() => onSortChange(sortBy === "name" ? "category" : "name")}
+          style={[
+            styles.sortButton,
+            sortBy.field === "date" && styles.activeButton,
+          ]}
+          onPress={() => handleSortPress("date")}
         >
-          <Text style={styles.sortButtonText}>
-            Sort by: {sortBy === "name" ? "Name" : "Category"}
+          <Text
+            style={[
+              styles.buttonText,
+              sortBy.field === "date" && styles.activeButtonText,
+            ]}
+          >
+            Date{" "}
+            {sortBy.field === "date" &&
+              (sortBy.direction === "asc" ? "↑" : "↓")}
           </Text>
+        </Pressable>
+        <Pressable
+          style={styles.groupButton}
+          onPress={() =>
+            onGroupChange(groupBy === "none" ? "category" : "none")
+          }
+        >
+          <Ionicons
+            name={
+              groupBy === "category"
+                ? "checkmark-circle"
+                : "checkmark-circle-outline"
+            }
+            size={20}
+            color="#666"
+          />
+          <Text style={styles.groupButtonText}>Group</Text>
         </Pressable>
       </View>
     </View>
@@ -31,30 +94,43 @@ export default function ActionBar({
 }
 
 const styles = StyleSheet.create({
-  actionsContainer: {
-    marginBottom: 20,
+  actionContainer: {
+    marginTop: 15,
   },
-  actionRow: {
+  buttonRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  categoryButton: {
-    backgroundColor: "#eee",
-    padding: 10,
-    borderRadius: 5,
-    alignItems: "center",
-  },
-  categoryButtonText: {
-    color: "#666",
+    gap: 8,
   },
   sortButton: {
+    flex: 3,
     backgroundColor: "#eee",
     padding: 10,
     borderRadius: 5,
     alignItems: "center",
   },
-  sortButtonText: {
+  groupButton: {
+    flex: 2,
+    backgroundColor: "#eee",
+    padding: 10,
+    borderRadius: 5,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+  },
+  activeButton: {
+    backgroundColor: "#6B46C1",
+  },
+  buttonText: {
     color: "#666",
+    fontWeight: "500",
+  },
+  activeButtonText: {
+    color: "#fff",
+  },
+  groupButtonText: {
+    color: "#666",
+    fontWeight: "500",
+    fontSize: 14,
   },
 });
