@@ -9,7 +9,7 @@ type FooterProps = {
 
 export default function Footer({ onCreatePress }: FooterProps) {
   const insets = useSafeAreaInsets();
-  const { setShowCategoryManager } = useCategories();
+  const { setShowCategoryModal } = useCategories();
 
   return (
     <View
@@ -18,7 +18,7 @@ export default function Footer({ onCreatePress }: FooterProps) {
       <View style={styles.buttonRow}>
         <Pressable
           style={styles.categoriesButton}
-          onPress={() => setShowCategoryManager(true)}
+          onPress={() => setShowCategoryModal(true)}
         >
           <Text style={styles.categoriesButtonText}>Categories</Text>
         </Pressable>

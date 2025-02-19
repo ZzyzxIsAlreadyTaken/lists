@@ -8,7 +8,7 @@ import {
   Stack,
 } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import CategoryManager, { Category } from "./components/CategoryManager";
+import CategoryModal from "./components/CategoryModal";
 import ListItem from "./components/ListItem";
 import ActionBar from "./components/ActionBar";
 import CreateListModal from "./components/CreateListModal";

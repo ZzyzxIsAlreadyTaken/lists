@@ -1,17 +1,12 @@
 import { Stack } from "expo-router";
 import { StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import CategoriesButton from "./components/CategoriesButton";
-import CategoryManager from "./components/CategoryManager";
+import CategoryModal from "./components/CategoryModal";
 import { CategoryProvider, useCategories } from "./context/CategoryContext";
 
 function LayoutContent() {
-  const {
-    showCategoryManager,
-    setShowCategoryManager,
-    categories,
-    saveCategory,
-  } = useCategories();
+  const { showCategoryModal, setShowCategoryModal, categories, saveCategory } =
+    useCategories();
 
   return (
     <SafeAreaProvider>
@@ -39,9 +34,9 @@ function LayoutContent() {
         />
       </Stack>
 
-      <CategoryManager
-        visible={showCategoryManager}
-        onClose={() => setShowCategoryManager(false)}
+      <CategoryModal
+        visible={showCategoryModal}
+        onClose={() => setShowCategoryModal(false)}
         categories={categories}
         onSaveCategory={saveCategory}
       />
@@ -72,7 +67,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.05)",
   },
   headerButtonText: {
-    color: "#007AFF",
+    color: "#6B46C1",
     fontSize: 16,
     fontWeight: "500",
   },

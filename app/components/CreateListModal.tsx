@@ -10,7 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { Category } from "./CategoryManager";
+import { Category } from "./CategoryModal";
 
 type CreateListModalProps = {
   visible: boolean;
@@ -34,7 +34,11 @@ export default function CreateListModal({
   onSubmit,
 }: CreateListModalProps) {
   const handleSubmit = () => {
+    if (!title.trim()) return;
+
     onSubmit();
+    onTitleChange("");
+    onCategoryChange(undefined);
     onClose();
   };
 
@@ -102,28 +106,29 @@ export default function CreateListModal({
                   </Pressable>
                 ))}
               </ScrollView>
-              <View style={styles.buttonContainer}>
-                <Pressable style={styles.cancelButton} onPress={onClose}>
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
-                </Pressable>
-                <Pressable
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <Pressable style={styles.cancelButton} onPress={onClose}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.createButton,
+                  !title && styles.createButtonDisabled,
+                ]}
+                onPress={handleSubmit}
+                disabled={!title}
+              >
+                <Text
                   style={[
-                    styles.createButton,
-                    !title && styles.createButtonDisabled,
+                    styles.createButtonText,
+                    !title && styles.createButtonTextDisabled,
                   ]}
-                  onPress={handleSubmit}
-                  disabled={!title}
                 >
-                  <Text
-                    style={[
-                      styles.createButtonText,
-                      !title && styles.createButtonTextDisabled,
-                    ]}
-                  >
-                    Create
-                  </Text>
-                </Pressable>
-              </View>
+                  Create
+                </Text>
+              </Pressable>
             </View>
           </Pressable>
         </KeyboardAvoidingView>
@@ -142,13 +147,13 @@ const styles = StyleSheet.create({
   },
   keyboardView: {
     width: "100%",
+    justifyContent: "center",
   },
   modalContent: {
     backgroundColor: "white",
     borderRadius: 10,
     padding: 20,
     width: "100%",
-    maxHeight: "80%",
   },
   modalTitle: {
     fontSize: 20,

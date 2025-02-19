@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Link } from "expo-router";
-import { Category } from "./CategoryManager";
+import { Category } from "./CategoryModal";
 
 type ListItemProps = {
   item: {

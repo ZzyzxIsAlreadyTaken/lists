@@ -18,7 +18,7 @@ export type Category = {
   color: string;
 };
 
-type CategoryManagerProps = {
+type CategoryModalProps = {
   visible: boolean;
   onClose: () => void;
   categories: Category[];
@@ -36,43 +36,48 @@ const DEFAULT_COLORS = [
   "#E67E22", // orange
 ];
 
-export default function CategoryManager({
+export default function CategoryModal({
   visible,
   onClose,
   categories,
   onSaveCategory,
-}: CategoryManagerProps) {
+}: CategoryModalProps) {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [selectedColor, setSelectedColor] = useState(DEFAULT_COLORS[0]);
 
   useEffect(() => {
-    console.log("CategoryManager visible:", visible); // Debug log
+    console.log("CategoryModal visible:", visible); // Debug log
   }, [visible]);
 
   const handleSave = () => {
     if (newCategoryName.trim() === "") return;
 
-    onSaveCategory({
+    const newCategory = {
       id: Date.now().toString(),
       name: newCategoryName.trim(),
       color: selectedColor,
-    });
+    };
 
+    onSaveCategory(newCategory);
+    onClose(); // Close the modal after saving
+
+    // Reset the form
     setNewCategoryName("");
     setSelectedColor(DEFAULT_COLORS[0]);
   };
 
+  const handleSaveCategory = (newCategory: Category) => {
+    // This function is no longer used as categories is already available as a prop
+  };
+
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <Pressable style={styles.modalContainer} onPress={onClose}>
+      <View style={styles.modalContainer}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardAvoidingView}
         >
-          <Pressable
-            style={styles.modalContent}
-            onPress={(e) => e.stopPropagation()}
-          >
+          <View style={styles.modalContent}>
             <ScrollView>
               <Text style={styles.modalTitle}>Manage Categories</Text>
 
@@ -123,9 +128,9 @@ export default function CategoryManager({
             <Pressable style={styles.closeButton} onPress={onClose}>
               <Text style={styles.closeButtonText}>Close</Text>
             </Pressable>
-          </Pressable>
+          </View>
         </KeyboardAvoidingView>
-      </Pressable>
+      </View>
     </Modal>
   );
 }
@@ -136,7 +141,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-    padding: 20,
   },
   keyboardAvoidingView: {
     width: "100%",
@@ -145,8 +149,9 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 10,
     padding: 20,
-    width: "100%",
-    maxHeight: "80%",
+    width: "90%",
+    height: "80%",
+    alignSelf: "center",
   },
   modalTitle: {
     fontSize: 20,
@@ -183,7 +188,7 @@ const styles = StyleSheet.create({
     borderColor: "#000",
   },
   saveButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#6B46C1",
     padding: 10,
     borderRadius: 5,
     alignItems: "center",

@@ -1,26 +1,26 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Category } from "../components/CategoryManager";
+import { Category } from "../components/CategoryModal";
 
 type CategoryContextType = {
   categories: Category[];
-  showCategoryManager: boolean;
-  setShowCategoryManager: (show: boolean) => void;
+  showCategoryModal: boolean;
+  setShowCategoryModal: (show: boolean) => void;
   saveCategory: (category: Category) => Promise<void>;
   loadCategories: () => Promise<void>;
 };
 
 const CategoryContext = createContext<CategoryContextType>({
   categories: [],
-  showCategoryManager: false,
-  setShowCategoryManager: () => {},
+  showCategoryModal: false,
+  setShowCategoryModal: () => {},
   saveCategory: async () => {},
   loadCategories: async () => {},
 });
 
 export function CategoryProvider({ children }: { children: React.ReactNode }) {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   const loadCategories = async () => {
     try {
@@ -50,8 +50,8 @@ export function CategoryProvider({ children }: { children: React.ReactNode }) {
     <CategoryContext.Provider
       value={{
         categories,
-        showCategoryManager,
-        setShowCategoryManager,
+        showCategoryModal,
+        setShowCategoryModal,
         saveCategory,
         loadCategories,
       }}

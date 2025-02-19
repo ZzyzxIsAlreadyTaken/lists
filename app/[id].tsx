@@ -135,7 +135,7 @@ export default function ListDetail() {
                 <Ionicons
                   name={item.completed ? "checkbox" : "square-outline"}
                   size={24}
-                  color="#007AFF"
+                  color="#6B46C1"
                 />
                 <Text
                   style={[
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   button: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#6B46C1",
     padding: 10,
     borderRadius: 5,
     justifyContent: "center",
